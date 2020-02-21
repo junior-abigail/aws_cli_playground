@@ -48,6 +48,15 @@ function cloudfront_create_distribution {
   echo $CREATED_DISTRIBUTION > distribution.json
   export DISTRIBUTION_ID=$(echo $CREATED_DISTRIBUTION | jq '.Distribution.Id')
   export DISTRIBUTION_DOMAIN=$(echo $CREATED_DISTRIBUTION | jq '.Distribution.DomainName')
+  echo "Distribution created. Public url => $DISTRIBUTION_DOMAIN"
+}
+
+function generate_publish_script {
+  echo "Generating helper script for publishing to bucket."
+  export DOLLAR=$
+  SCRIPT_FILE=$(pwd)/publish_to_${BUCKET_NAME}.sh
+  envsubst < ${BASH_SOURCE%/*}/publish_script_template.sh > $SCRIPT_FILE
+  echo "Succefully created script $SCRIPT_FILE"
 }
 
 function run {
@@ -56,6 +65,7 @@ function run {
   s3_bucket_create
   s3_bucket_make_public
   cloudfront_create_distribution
+  generate_publish_script
   set +e
 }
 
