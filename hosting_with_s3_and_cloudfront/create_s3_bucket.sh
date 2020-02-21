@@ -9,23 +9,22 @@ function validate_input {
   if [ -z "$1" ]; then
     echo "Usage:
     create_s3_bucket.sh <bucket_name>"
-    echo "Creates an S3 bucket with the specified <bucket_name> and grants" \
-    "public read access to the bucket's contents. Then creates a cloudfront" \
-    "distribution for the bucket configured to redirect http traffic to" \
+    echo "Creates an S3 bucket with the specified <bucket_name> and grants"   \
+    "public read access to the bucket's contents. Then creates a cloudfront"  \
+    "distribution for the bucket configured to redirect http traffic to"      \
     "https. The resulting bucket can then be used to host a web application," \
-    "by uploading the static files to the bucket with an entry point of" \
-    "index.html. The contents of the bucket are publicly accessible by" \
-    "visiting the cloudfront distribution's domain name url generated when" \
+    "by uploading the static files to the bucket with an entry point of"      \
+    "index.html. The contents of the bucket are publicly accessible by"       \
+    "visiting the cloudfront distribution's domain name url generated when"   \
     "the distribution is created."
     exit 1
   fi
+
   if [ ! -z "$(aws s3 ls | grep $1)" ]; then
     echo "The bucket $1 already exist"
     exit 1
   fi
-}
-
-function set_env_variables {
+  
   export BUCKET_NAME=$1
   export CALLER_REF="${BUCKET_NAME}_$(date -u +%FT%TZ)"
 }
@@ -44,14 +43,16 @@ function s3_bucket_make_public {
 function cloudfront_create_distribution {
   echo "Creating cloudfront distribution"
   DISTRIBUTION_CONFIG=$(envsubst < ${BASH_SOURCE%/*}/json_templates/cloudfront_distribution.json)
-  aws cloudfront create-distribution \
-    --distribution-config "$DISTRIBUTION_CONFIG"
+  CREATED_DISTRIBUTION=$(aws cloudfront create-distribution \
+    --distribution-config "$DISTRIBUTION_CONFIG")
+  echo $CREATED_DISTRIBUTION > distribution.json
+  export DISTRIBUTION_ID=$(echo $CREATED_DISTRIBUTION | jq '.Distribution.Id')
+  export DISTRIBUTION_DOMAIN=$(echo $CREATED_DISTRIBUTION | jq '.Distribution.DomainName')
 }
 
 function run {
   set -e
   validate_input $1
-  set_env_variables $1
   s3_bucket_create
   s3_bucket_make_public
   cloudfront_create_distribution
