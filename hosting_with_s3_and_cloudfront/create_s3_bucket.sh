@@ -45,7 +45,6 @@ function cloudfront_create_distribution {
   DISTRIBUTION_CONFIG=$(envsubst < ${BASH_SOURCE%/*}/json_templates/cloudfront_distribution.json)
   CREATED_DISTRIBUTION=$(aws cloudfront create-distribution \
     --distribution-config "$DISTRIBUTION_CONFIG")
-  echo $CREATED_DISTRIBUTION > distribution.json
   export DISTRIBUTION_ID=$(echo $CREATED_DISTRIBUTION | jq '.Distribution.Id')
   export DISTRIBUTION_DOMAIN=$(echo $CREATED_DISTRIBUTION | jq '.Distribution.DomainName')
   echo "Distribution created. Public url => $DISTRIBUTION_DOMAIN"
