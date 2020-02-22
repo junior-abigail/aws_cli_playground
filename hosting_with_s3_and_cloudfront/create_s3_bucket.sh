@@ -36,13 +36,13 @@ function s3_bucket_create {
 
 function s3_bucket_make_public {
   echo "Adding public read policy to bucket $BUCKET_NAME"
-	POLICY=$(envsubst < ${BASH_SOURCE%/*}/json_templates/s3_bucket_public_read.json)
+	POLICY=$(envsubst < ${BASH_SOURCE%/*}/supporting_files/s3_bucket_public_read.json)
 	aws s3api put-bucket-policy --bucket $BUCKET_NAME --policy "$POLICY"
 }
 
 function cloudfront_create_distribution {
   echo "Creating cloudfront distribution"
-  DISTRIBUTION_CONFIG=$(envsubst < ${BASH_SOURCE%/*}/json_templates/cloudfront_distribution.json)
+  DISTRIBUTION_CONFIG=$(envsubst < ${BASH_SOURCE%/*}/supporting_files/cloudfront_distribution.json)
   CREATED_DISTRIBUTION=$(aws cloudfront create-distribution \
     --distribution-config "$DISTRIBUTION_CONFIG")
   export DISTRIBUTION_ID=$(echo $CREATED_DISTRIBUTION | jq '.Distribution.Id')
@@ -54,7 +54,8 @@ function generate_publish_script {
   echo "Generating helper script for publishing to bucket."
   export DOLLAR=$
   SCRIPT_FILE=$(pwd)/publish_to_${BUCKET_NAME}.sh
-  envsubst < ${BASH_SOURCE%/*}/publish_script_template.sh > $SCRIPT_FILE
+  envsubst < ${BASH_SOURCE%/*}/supporting_files/publish_script_template.sh > $SCRIPT_FILE
+  chmod +x $SCRIPT_FILE
   echo "Succefully created script $SCRIPT_FILE"
 }
 
