@@ -33,7 +33,7 @@ function update_cache {
   echo "Creating cloudfront invalidation (cache update)"
   aws cloudfront create-invalidation \
     --distribution-id ${DISTRIBUTION_ID} \
-    --paths "/"
+    --paths "/*"
 }
 
 function run {
